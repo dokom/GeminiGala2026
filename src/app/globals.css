@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ tokens */
+:root {
+  /* Literal palette, taken from the CHASE wordmark (public/chaselogo.svg):
+     the red is the accent FILL (buttons, marker, highlights, focus ring) and
+     stays this exact hex in both schemes; the navy is the brand blue pushed
+     down to a ground colour. These never change with theme — they are
+     colours, not roles. */
+  --chase-red:   #E00E0F;
+  --chase-blue:  #0171BD;
+  --ink:         #08192B;
+  --midnight:    #0F2A47;
+  --accent:      var(--chase-red);
+  --accent-dim:  #A10A0B;
+  --paper:       #F3F6FA;
+  --mist:        #9AA9BD;
+  --danger:      #FF7A6B;
+  --success:     #7FD39A;
+  /* Label colour on the accent FILL. White on the red is 4.95:1 (verified)
+     where a dark label would fail, so it is never scheme-dependent. */
+  --on-accent:   #FFFFFF;
+
+  /* Semantic roles. These DO change with theme; redefined below per scheme.
+     Defaults here are the dark (ground) state. */
+  --ground:     var(--ink);
+  --surface:    var(--midnight);
+  --text:       var(--paper);
+  --text-muted: var(--mist);
+  /* The accent as TEXT (the guest's name, "Table N"). The fill red is only
+     3.58:1 on the navy ground, so text uses a lifted red: 6.39:1 verified. */
+  --accent-ink: #FF6B6B;
+  /* The brand blue as TEXT (eyebrows, secondary emphasis). 9.27:1 verified. */
+  --blue-ink:   #7CC3F5;
+  /* --danger/--success as TEXT: 6.96:1 / 9.87:1 on the navy ground. */
+  --danger-ink: var(--danger);
+  --success-ink: var(--success);
+
+  /* Type scale. Display sizes are fluid; the hero is deliberately enormous. */
+  --text-hero:    clamp(4.75rem, 2rem + 11vw, 9.5rem);
+  --text-display: clamp(2rem, 1.4rem + 3.5vw, 4rem);
+  --text-title:   clamp(1.375rem, 1.15rem + 1.2vw, 2rem);
+  --text-body:    clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --text-eyebrow: 0.6875rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Aliases the admin screens reference. Point at the semantic roles (not
+     the literal colours) so admin surfaces track the active scheme. */
+  --color-ink: var(--surface);
+  --color-bone: var(--text);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-surface: var(--surface);
+  --color-border: #213B5C;
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+}
+
+/* Light theme is a designed theme, not an inversion: cool white ground (the
+   wordmark lives on white), same red fills. Only the semantic roles move —
+   the literal colours above never do, so their names never mean their
+   opposite. Every text value below is verified ≥ 4.5:1 on both #F6F8FB and
+   #FFFFFF. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground:     #F6F8FB;
+    --surface:    #FFFFFF;
+    --text:       #101A2B;
+    --text-muted: #4F5D73;
+    --accent-ink: #A10A0B;   /* 7.70:1 */
+    --blue-ink:   #0A4F87;   /* 7.96:1 */
+    --danger-ink: #B23A2E;   /* 5.58:1 */
+    --success-ink: #276639;  /* 6.48:1 */
+    --color-border: #D3DBE6;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:     var(--ink);
+  --surface:    var(--midnight);
+  --text:       var(--paper);
+  --text-muted: var(--mist);
+  --accent-ink: #FF6B6B;
+  --blue-ink:   #7CC3F5;
+  --danger-ink: var(--danger);
+  --success-ink: var(--success);
+  --color-border: #213B5C;
+}
+/* Mirrors the `prefers-color-scheme: light` block above exactly. Needed
+   because MotionProvider honours an explicit data-theme="light" choice even
+   when the OS itself prefers dark — without this block, that visitor would
+   silently fall through to the dark :root defaults. Same source-order
+   placement as [data-theme="dark"] above so the explicit attribute always
+   wins over the media query. */
+:root[data-theme="light"] {
+  --ground:     #F6F8FB;
+  --surface:    #FFFFFF;
+  --text:       #101A2B;
+  --text-muted: #4F5D73;
+  --accent-ink: #A10A0B;
+  --blue-ink:   #0A4F87;
+  --danger-ink: #B23A2E;
+  --success-ink: #276639;
+  --color-border: #D3DBE6;
+}
+
+/* ------------------------------------------------------------------- base */
+body {
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* opsz is size-specific, not a blanket 72: forcing display-weight hairlines
+   onto 20px body serif is exactly the shimmer opsz exists to prevent. Only
+   .type-hero earns the full 72; .font-serif's own default is a body-safe 24. */
+.font-serif,
+.type-display {
+  font-family: var(--font-display), "Bodoni Moda", Didot, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+}
+
+.font-serif   { font-variation-settings: "opsz" 24; }
+.type-hero    { font-size: var(--text-hero); font-variation-settings: "opsz" 72; }
+.type-display { font-size: var(--text-display); font-variation-settings: "opsz" 48; }
+.type-title   { font-size: var(--text-title); font-variation-settings: "opsz" 24; }
+
+/* Engraved-caption eyebrows: small caps, wide tracking. --text-muted (not the
+   literal --mist) so eyebrows stay legible when the scheme flips. */
+.type-eyebrow {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: var(--text-eyebrow);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.22em;
+  color: var(--blue-ink);
+}
+
+/* --------------------------------------------------------- reduced motion */
+/* Baseline: the motion layer checks this itself via MotionProvider, but a CSS
+   backstop means nothing moves even if a script fails to load. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ambient pulse on the guest's own table (Task 8). CSS, not a timeline: it
+   loops, and the reduced-motion backstop above already stops it. A scaling,
+   fading ring on ::after — transform + opacity only, compositor-only. The
+   marker itself (h-4 w-4, already `position: absolute`) is the containing
+   block, so `inset: 0` sizes the ring to it with no extra markup. */
+@keyframes seat-pulse-ring {
+  0%   { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+.seat-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--accent);
+  animation: seat-pulse-ring 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+/* One-shot brass shimmer after the stamp lands (Task 10). The base text stays
+   fully readable throughout; a translucent brass highlight — duplicated text
+   via attr(), clipped to its own glyphs — sweeps across on ::after using only
+   transform + opacity. `data-shimmer` + `data-shimmer-text` are set by rsvp-form.tsx on the
+   confirmation headline, with the exact copy, so the clip lines up. */
+@keyframes sealed-shimmer {
+  0%   { transform: translateX(-120%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+.sealed-shimmer [data-shimmer] {
+  position: relative;
+}
+.sealed-shimmer [data-shimmer]::after {
+  content: attr(data-shimmer-text);
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  background: linear-gradient(100deg, transparent 40%, var(--accent) 50%, transparent 60%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sealed-shimmer 1.4s var(--ease-out-expo) 1 forwards;
+  pointer-events: none;
+}
+
+/* Visible keyboard focus everywhere, in brass. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------- lite stage */
+/* The lite tier's stand-in for the WebGL stage: one soft glow per act, fixed
+   behind the page and cross-faded by the tracker's `data-act`. Opacity is the
+   only thing that moves, so it costs nothing per frame. Kept faint enough
+   that text contrast is set by the ground, not the glow. */
+.stage-lite {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  --stage-glow: 1;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .stage-lite { --stage-glow: 0.6; }
+}
+:root[data-theme="light"] .stage-lite { --stage-glow: 0.6; }
+
+.stage-lite > span {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out-expo);
+}
+[data-act="0"] > .stage-lite > [data-lite-act="0"],
+[data-act="1"] > .stage-lite > [data-lite-act="1"],
+[data-act="2"] > .stage-lite > [data-lite-act="2"],
+[data-act="3"] > .stage-lite > [data-lite-act="3"],
+[data-act="4"] > .stage-lite > [data-lite-act="4"] {
+  opacity: var(--stage-glow);
+}
+/* Seal: foil warmth behind the wax. */
+[data-lite-act="0"] {
+  background: radial-gradient(60% 45% at 18% 22%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%);
+}
+/* Drive: tail-light red and headlight white, low on the road. */
+[data-lite-act="1"] {
+  background:
+    radial-gradient(40% 16% at 70% 80%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 70%),
+    radial-gradient(40% 16% at 30% 74%, color-mix(in oklab, #FFE9C8 14%, transparent), transparent 70%);
+}
+/* Evening: a chandelier's gold, overhead. */
+[data-lite-act="2"] {
+  background: radial-gradient(55% 35% at 50% 10%, color-mix(in oklab, #FFC36B 18%, transparent), transparent 70%);
+}
+/* Seat: the room's blue floor. */
+[data-lite-act="3"] {
+  background: radial-gradient(70% 30% at 50% 100%, color-mix(in oklab, var(--chase-blue) 22%, transparent), transparent 70%);
+}
+/* Response: nearly nothing — the form has the stage. */
+[data-lite-act="4"] {
+  background: radial-gradient(80% 40% at 50% 100%, color-mix(in oklab, var(--chase-blue) 10%, transparent), transparent 70%);
+}

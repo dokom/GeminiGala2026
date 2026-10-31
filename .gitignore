@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env*
+!.env.example
+*.log
+coverage/
+test-results/
+playwright-report/
+next-env.d.ts
+*.tsbuildinfo
+.mongo/
+
+# TLS material for the origin server: never in git
+ssl/
